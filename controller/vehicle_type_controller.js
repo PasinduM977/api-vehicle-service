@@ -7,7 +7,7 @@ const connection =getConnection;
  * GET /
  */
 const getAllVehicleTypes = (req, res) => {
-  const sql = `SELECT * FROM vehicleType`;
+  const sql = `SELECT * FROM vehicletype`;
 
   connection.query(sql, (err, results) => {
     if (err) {

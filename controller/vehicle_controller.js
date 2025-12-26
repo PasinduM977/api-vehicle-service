@@ -2,7 +2,6 @@
 const getConnection = require("../db");
 const connection =getConnection;
 
-
 /**
  * Save new vehicle
  * POST /
