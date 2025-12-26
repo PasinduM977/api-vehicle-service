@@ -1,5 +1,6 @@
 // DB connection
 const getConnection = require("../db");
+const connection =getConnection;
 
 getConnection.connect((err) => {
   if (err) {
