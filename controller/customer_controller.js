@@ -1,15 +1,6 @@
-
 // DB connection
 const getConnection = require("../db");
 const connection =getConnection;
-
-getConnection.connect((err) => {
-  if (err) {
-    console.error('Database connection failed:', err);
-  } else {
-    console.log('Database connected successfully');
-  }
-});
 
 /**
  * Save new customer
