@@ -1,24 +1,23 @@
-// DB connection
-const getConnection = require("../db");
-const connection =getConnection;
+const db = require('../db');
 
 /**
- * Get all status
- * GET /
+ * GET /vehicle-types
  */
-const getAllVehicleTypes = (req, res) => {
-  const sql = `SELECT * FROM vehicletype`;
+const getAllVehicleTypes = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM vehicletype'
+    );
 
-  connection.query(sql, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Failed to fetch customers' });
-    }
-
-    res.json(results);
-  });
+    res.json(rows);
+  } catch (error) {
+    console.error('DB Error:', error);
+    res.status(500).json({
+      message: 'Failed to fetch vehicle types'
+    });
+  }
 };
 
-// Export methods
 module.exports = {
-  getAllVehicleTypes}
+  getAllVehicleTypes
+};

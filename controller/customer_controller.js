@@ -1,124 +1,161 @@
-// DB connection
-const getConnection = require("../db");
-const connection =getConnection;
+const db = require('../db');
 
 /**
  * Save new customer
  * POST /
  */
-const saveCustomer = (req, res) => {
-  const { nic, customerName, phone } = req.body;
+const saveCustomer = async (req, res) => {
+  try {
+    const { nic, customerName, phone } = req.body;
 
-  if (!nic || !customerName || !phone) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-
-  const sql = `
-    INSERT INTO customer (nic, customerName, phone)
-    VALUES (?, ?, ?)
-  `;
-
-  connection.query(sql, [nic, customerName, phone], (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: err.sqlMessage });
+    if (!nic || !customerName || !phone) {
+      return res.status(400).json({
+        message: 'All fields are required'
+      });
     }
-    res.status(201).json({ message: 'Customer saved successfully' });
-  });
+
+    const sql = `
+      INSERT INTO customer (nic, customerName, phone)
+      VALUES (?, ?, ?)
+    `;
+
+    await db.query(sql, [nic, customerName, phone]);
+
+    res.status(201).json({
+      message: 'Customer saved successfully'
+    });
+
+  } catch (error) {
+    console.error('Save customer error:', error);
+
+    res.status(500).json({
+      message: error.sqlMessage || 'Failed to save customer'
+    });
+  }
 };
 
 /**
  * Update customer by NIC
  * PUT /:nic
  */
-const updateCustomer = (req, res) => {
-  const { nic1 } = req.params;
-  const { nic,customerName, phone } = req.body;
+const updateCustomer = async (req, res) => {
+  try {
+    const { nic1} = req.params;
+    const { nic, customerName, phone } = req.body;
 
-  const sql = `
-    UPDATE customer
-    SET nic = ?, customerName = ?, phone = ?
-    WHERE nic = ?
-  `;
+    const sql = `
+      UPDATE customer
+      SET nic = ?, customerName = ?, phone = ?
+      WHERE nic = ?
+    `;
 
-  connection.query(sql, [nic,customerName, phone, nic1], (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: err.sqlMessage });
-    }
+    const [result] = await db.query(sql, [
+      nic,
+      customerName,
+      phone,
+      nic1
+    ]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({
+        message: 'Customer not found'
+      });
     }
 
-    res.json({ message: 'Customer updated successfully' });
-  });
+    res.json({
+      message: 'Customer updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update customer error:', error);
+
+    res.status(500).json({
+      message: error.sqlMessage || 'Failed to update customer'
+    });
+  }
 };
 
 /**
  * Delete customer by NIC
  * DELETE /:nic
  */
-const deleteCustomer = (req, res) => {
-  const { nic } = req.params;
+const deleteCustomer = async (req, res) => {
+  try {
+    const { nic } = req.params;
 
-  const sql = `DELETE FROM customer WHERE nic = ?`;
+    const sql = `DELETE FROM customer WHERE nic = ?`;
 
-  connection.query(sql, [nic], (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Failed to delete customer' });
-    }
+    const [result] = await db.query(sql, [nic]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({
+        message: 'Customer not found'
+      });
     }
 
-    res.json({ message: 'Customer deleted successfully' });
-  });
+    res.json({
+      message: 'Customer deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete customer error:', error);
+
+    res.status(500).json({
+      message: 'Failed to delete customer'
+    });
+  }
 };
 
 /**
  * Get all customers
  * GET /
  */
-const getAllCustomers = (req, res) => {
-  const sql = `SELECT * FROM customer`;
+const getAllCustomers = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM customer'
+    );
 
-  connection.query(sql, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Failed to fetch customers' });
-    }
+    res.json(rows);
 
-    res.json(results);
-  });
+  } catch (error) {
+    console.error('Fetch customers error:', error);
+
+    res.status(500).json({
+      message: 'Failed to fetch customers'
+    });
+  }
 };
 
 /**
  * Get customer by NIC
  * GET /byNIC/:nic
  */
-const getCustomerByNIC = (req, res) => {
-  const { nic } = req.params;
+const getCustomerByNIC = async (req, res) => {
+  try {
+    const { nic } = req.params;
 
-  const sql = `SELECT * FROM customer WHERE nic = ?`;
+    const sql = `SELECT * FROM customer WHERE nic = ?`;
 
-  connection.query(sql, [nic], (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Failed to fetch customer' });
+    const [rows] = await db.query(sql, [nic]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: 'Customer not found'
+      });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
+    res.json(rows[0]);
 
-    res.json(results[0]);
-  });
+  } catch (error) {
+    console.error('Fetch customer error:', error);
+
+    res.status(500).json({
+      message: 'Failed to fetch customer'
+    });
+  }
 };
 
-// Export methods
 module.exports = {
   saveCustomer,
   updateCustomer,
